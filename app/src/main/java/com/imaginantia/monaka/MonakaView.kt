@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.ViewGroup.LayoutParams
+import kotlin.math.roundToInt
 
 class MonakaView : GLSurfaceView {
     val renderer: MonakaRenderer
@@ -17,7 +18,9 @@ class MonakaView : GLSurfaceView {
         this.core = core
         val metrics = Resources.getSystem().displayMetrics
         holder.setFormat(PixelFormat.TRANSLUCENT)
-        holder.setFixedSize(metrics.widthPixels / 2, 400)
+        val dip = 160
+        val heightScale = 1.5f // TODO: external config
+        holder.setFixedSize(metrics.widthPixels, (metrics.density * dip * heightScale).roundToInt())
         setZOrderOnTop(true)
         setEGLContextClientVersion(2)
         setEGLConfigChooser(8, 8, 8, 8, 0, 0)
@@ -27,7 +30,7 @@ class MonakaView : GLSurfaceView {
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        core.touched()
+        event?.also { core.touched(it) }
         return true
     }
 }
