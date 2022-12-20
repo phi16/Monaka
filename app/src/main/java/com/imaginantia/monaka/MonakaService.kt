@@ -5,7 +5,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 
 class MonakaService : InputMethodService() {
-    var core: MonakaCore = MonakaCore()
+    private var core: MonakaCore = MonakaCore()
 
     override fun onCreate() {
         super.onCreate()

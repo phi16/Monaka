@@ -3,19 +3,22 @@ package com.imaginantia.monaka
 import android.graphics.PointF
 import android.util.Log
 
-class MonakaStroke(val core: MonakaCore, val id: Int) {
+class MonakaStroke(private val core: MonakaCore, private val id: Int) {
+    lateinit var cur: PointF
+
     fun down(p: PointF) {
-        Log.d("Monaka", "down $id $p")
-        core.commit("D$id ")
+        cur = p
     }
 
     fun move(p: PointF) {
-        Log.d("Monaka", "move $id $p")
-        core.commit("M$id ")
+        cur = p
     }
 
     fun up(p: PointF) {
-        Log.d("Monaka", "up $id $p")
-        core.commit("U$id ")
+        cur = p
+    }
+
+    fun frame() {
+        core.renderer.setPoint(cur)
     }
 }
