@@ -2,14 +2,18 @@ package com.imaginantia.monaka
 
 import android.graphics.PointF
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
 import android.view.inputmethod.InputConnection
 import androidx.annotation.RequiresApi
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.math.roundToInt
 
 class MonakaCore {
     val heightScale: Float = 1.5f
@@ -17,12 +21,15 @@ class MonakaCore {
     var resolution: PointF = PointF(0f, 0f)
     var width: Int = 0
     var height: Int = 0
+    lateinit var inputView: MonakaView
+    lateinit var candidatesView: MonakaView
     lateinit var renderer: MonakaRenderer
 
     private var ic: InputConnection? = null
     private var presented: Boolean = false
     private var strokes: Map<Int, MonakaStroke> = mapOf()
     private lateinit var presentTime: LocalDateTime
+    private val handler: Handler = Handler(Looper.getMainLooper())
 
     fun init() {
         Log.d("Monaka","Init")
@@ -65,6 +72,16 @@ class MonakaCore {
 
     fun touched(event: MotionEvent) {
         val action = event.actionMasked
+        /* if(action == MotionEvent.ACTION_DOWN) {
+            candidatesView.visibility = View.VISIBLE
+            // handler.removeCallbacks(...)
+        }
+        if(action == MotionEvent.ACTION_UP) {
+            handler.postDelayed({
+                candidatesView.visibility = View.GONE
+            }, 500)
+        } */
+
         val pointerIndex = event.actionIndex
         val pointerId = event.getPointerId(pointerIndex)
         if (!strokes.containsKey(pointerId)) {

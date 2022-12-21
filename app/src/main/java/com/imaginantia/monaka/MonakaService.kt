@@ -13,8 +13,15 @@ class MonakaService : InputMethodService() {
     }
 
     override fun onCreateInputView(): View? {
-        return MonakaView(this, core)
+        core.inputView = MonakaView(this, core)
+        return core.inputView
     }
+
+    /* override fun onCreateCandidatesView(): View? {
+        core.candidatesView = MonakaView(this, core)
+        core.candidatesView.visibility = View.GONE
+        return core.candidatesView
+    } */
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         info?.also { core.applyInputType(it.inputType) }
@@ -25,6 +32,8 @@ class MonakaService : InputMethodService() {
     }
 
     override fun onWindowShown() {
-        core.present(currentInputConnection)
+        currentInputConnection?.let {
+            core.present(it)
+        }
     }
 }

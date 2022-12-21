@@ -38,7 +38,7 @@ class Draw(private val core: MonakaCore, private val p: Int, private val m: Mesh
         fun build(core: MonakaCore, vs: String, fs: String, m: Mesh, params: Array<String>): Draw? {
             val buildShader = { type: Int, src: String ->
                 val s = GLES20.glCreateShader(type)
-                GLES20.glShaderSource(s, "precision mediump float; uniform float time; uniform vec2 resolution;\n$src")
+                GLES20.glShaderSource(s, "precision highp float; uniform float time; uniform vec2 resolution;\n$src")
                 GLES20.glCompileShader(s)
                 val buff = IntBuffer.allocate(1)
                 GLES20.glGetShaderiv(s, GLES20.GL_COMPILE_STATUS, buff)
