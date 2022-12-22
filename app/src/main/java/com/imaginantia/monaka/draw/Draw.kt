@@ -6,7 +6,7 @@ import com.imaginantia.monaka.MonakaCore
 import java.nio.IntBuffer
 import java.util.Dictionary
 
-class Draw(private val core: MonakaCore, private val p: Int, private val m: Mesh, params: Array<String>) {
+class Draw(private val core: MonakaCore, private val p: Int, params: Array<String>) {
     sealed class Value {
         object N: Value()
         data class I1(val x: Int): Value()
@@ -35,7 +35,7 @@ class Draw(private val core: MonakaCore, private val p: Int, private val m: Mesh
     }
 
     companion object {
-        fun build(core: MonakaCore, vs: String, fs: String, m: Mesh, params: Array<String>): Draw? {
+        fun build(core: MonakaCore, vs: String, fs: String, params: Array<String>): Draw? {
             val buildShader = { type: Int, src: String ->
                 val s = GLES20.glCreateShader(type)
                 GLES20.glShaderSource(s, "precision highp float; uniform float time; uniform vec2 resolution;\n$src")
@@ -64,7 +64,7 @@ class Draw(private val core: MonakaCore, private val p: Int, private val m: Mesh
             val v = buildShader(GLES20.GL_VERTEX_SHADER, vs) ?: return null
             val f = buildShader(GLES20.GL_FRAGMENT_SHADER, fs) ?: return null
             val p = buildProgram(v, f) ?: return null
-            return Draw(core, p, m, params)
+            return Draw(core, p, params)
         }
     }
 
@@ -77,7 +77,7 @@ class Draw(private val core: MonakaCore, private val p: Int, private val m: Mesh
     fun f3(name: String, x: Float, y: Float, z: Float) { uniforms[name]?.value = Value.F3(x, y, z) }
     fun f4(name: String, x: Float, y: Float, z: Float, w: Float) { uniforms[name]?.value = Value.F4(x, y, z, w) }
 
-    fun draw() {
+    fun draw(m: Mesh) {
         GLES20.glUseProgram(p)
         GLES20.glBindAttribLocation(p, 0, "vertex")
         GLES20.glBindAttribLocation(p, 1, "uv")
