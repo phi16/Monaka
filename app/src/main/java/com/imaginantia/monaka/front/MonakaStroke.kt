@@ -1,6 +1,5 @@
 package com.imaginantia.monaka.front
 
-import android.graphics.Point
 import android.graphics.PointF
 import android.util.Log
 import com.imaginantia.monaka.MonakaCore
@@ -15,12 +14,10 @@ class MonakaStroke(private val core: MonakaCore, private val id: Int) {
             main = true
             core.layout.p = cur
             Log.d("Monaka", "Down $cur")
-            for(i in 0 until core.layout.buttons.size / 3) {
-                val bp = PointF(core.layout.buttons[i*3+0], core.layout.buttons[i*3+1])
-                val bs = core.layout.buttons[i*3+2]
-                val d = Math.abs(p.x - bp.x) + Math.abs(p.y - bp.y) - bs
+            for(b in core.layout.buttons) {
+                val d = Math.abs(p.x - b.p.x) + Math.abs(p.y - b.p.y) - b.s
                 if(d < 0f) {
-                    core.commit("$i")
+                    core.commit("${b.tag}")
                 }
             }
         }

@@ -3,6 +3,7 @@ package com.imaginantia.monaka.front
 import android.graphics.PointF
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import android.util.Log
 import com.imaginantia.monaka.MonakaCore
 import com.imaginantia.monaka.draw.Draw
 import com.imaginantia.monaka.draw.Mesh
@@ -78,17 +79,16 @@ class MonakaRenderer(private val core: MonakaCore, private val primary: Boolean)
             """.trimIndent() , arrayOf()
         )
         val quad = floatArrayOf(-1f, 0f, 0f, 1f, 0f, -1f, 0f, -1f, 0f, 1f, 1f, 0f)
-        val points = core.layout.buttons
-        val qCount = points.size / 3
+        val qCount = core.layout.buttons.size
         var qVerts = FloatArray((2 + 3) * 6 * qCount)
         var k = 0
-        for(i in 0 until qCount) {
+        for((i, b) in core.layout.buttons.withIndex()) {
             for(j in 0 until 6) {
                 qVerts[k+0] = quad[j*2+0]
                 qVerts[k+1] = quad[j*2+1]
-                qVerts[k+2] = points[i*3+0]
-                qVerts[k+3] = points[i*3+1]
-                qVerts[k+4] = points[i*3+2]
+                qVerts[k+2] = b.p.x
+                qVerts[k+3] = b.p.y
+                qVerts[k+4] = b.s
                 k += 5
             }
         }

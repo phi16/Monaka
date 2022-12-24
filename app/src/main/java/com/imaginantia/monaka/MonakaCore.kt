@@ -20,7 +20,7 @@ class MonakaCore {
     var resolution: PointF = PointF(0f, 0f)
     var width: Int = 0
     var height: Int = 0
-    var subRatio: Float = 0f
+    var subHeight: Int = 0
     var layout: MonakaLayout = MonakaLayout()
     lateinit var service: MonakaService
     lateinit var mainView: MonakaView
@@ -34,6 +34,7 @@ class MonakaCore {
     private var frameTimer: Runnable? = null
     private var subTimer: Runnable? = null
     private var mainStroke: MonakaStroke? = null
+    private val isEmulator: Boolean = true
 
     fun init(service: MonakaService) {
         Log.d("Monaka","Init")
@@ -48,17 +49,17 @@ class MonakaCore {
     }
 
     fun subResized(height: Int) {
-        this.subRatio = resolution.y / height.toFloat()
+        this.subHeight = height
     }
 
     fun subShow() {
-        // service.setCandidatesViewShown(true)
-        subView.visibility = View.VISIBLE
+        if(isEmulator) subView.visibility = View.VISIBLE
+        else service.setCandidatesViewShown(true)
     }
 
     fun subHide() {
-        // service.setCandidatesViewShown(false)
-        subView.visibility = View.GONE
+        if(isEmulator) subView.visibility = View.GONE
+        else service.setCandidatesViewShown(false)
     }
 
     fun frame() {

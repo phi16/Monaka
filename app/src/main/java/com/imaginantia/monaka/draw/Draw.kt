@@ -85,7 +85,7 @@ class Draw(private val core: MonakaCore, private val p: Int, params: Array<Strin
         f1("time", core.time)
         f2("resolution", core.resolution.x, core.resolution.y)
         if(primary) f2("native", 1f, 0f)
-        else f2("native", core.subRatio, -2f)
+        else f2("native", core.resolution.y.toFloat() / core.subHeight.toFloat(), -2f)
         for(u in uniforms.values) {
             if(u.location == -1) continue
             when(val v = u.value) {
