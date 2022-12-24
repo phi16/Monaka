@@ -32,13 +32,14 @@ class Draw(private val core: MonakaCore, private val p: Int, params: Array<Strin
         }
         addUniform("time")
         addUniform("resolution")
+        addUniform("native")
     }
 
     companion object {
         fun build(core: MonakaCore, vs: String, fs: String, params: Array<String>): Draw? {
             val buildShader = { type: Int, src: String ->
                 val s = GLES20.glCreateShader(type)
-                GLES20.glShaderSource(s, "precision highp float; uniform float time; uniform vec2 resolution;\n$src")
+                GLES20.glShaderSource(s, "precision highp float; uniform float time; uniform vec2 resolution; uniform vec2 native;\n$src")
                 GLES20.glCompileShader(s)
                 val buff = IntBuffer.allocate(1)
                 GLES20.glGetShaderiv(s, GLES20.GL_COMPILE_STATUS, buff)
@@ -52,6 +53,8 @@ class Draw(private val core: MonakaCore, private val p: Int, params: Array<Strin
                 val p = GLES20.glCreateProgram()
                 GLES20.glAttachShader(p, v)
                 GLES20.glAttachShader(p, f)
+                GLES20.glBindAttribLocation(p, 0, "vertex")
+                GLES20.glBindAttribLocation(p, 1, "uv")
                 GLES20.glLinkProgram(p)
                 val buff = IntBuffer.allocate(1)
                 GLES20.glGetProgramiv(p, GLES20.GL_LINK_STATUS, buff)
@@ -77,12 +80,12 @@ class Draw(private val core: MonakaCore, private val p: Int, params: Array<Strin
     fun f3(name: String, x: Float, y: Float, z: Float) { uniforms[name]?.value = Value.F3(x, y, z) }
     fun f4(name: String, x: Float, y: Float, z: Float, w: Float) { uniforms[name]?.value = Value.F4(x, y, z, w) }
 
-    fun draw(m: Mesh) {
+    fun draw(m: Mesh, primary: Boolean) {
         GLES20.glUseProgram(p)
-        GLES20.glBindAttribLocation(p, 0, "vertex")
-        GLES20.glBindAttribLocation(p, 1, "uv")
         f1("time", core.time)
         f2("resolution", core.resolution.x, core.resolution.y)
+        if(primary) f2("native", 1f, 0f)
+        else f2("native", core.subRatio, -2f)
         for(u in uniforms.values) {
             if(u.location == -1) continue
             when(val v = u.value) {

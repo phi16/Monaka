@@ -1,14 +1,15 @@
-package com.imaginantia.monaka
+package com.imaginantia.monaka.front
 
 import android.graphics.PointF
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import com.imaginantia.monaka.MonakaCore
 import com.imaginantia.monaka.draw.Draw
 import com.imaginantia.monaka.draw.Mesh
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class MonakaRenderer(val core: MonakaCore): GLSurfaceView.Renderer {
+class MonakaRenderer(private val core: MonakaCore, private val primary: Boolean): GLSurfaceView.Renderer {
     var time: Float = 0.0f
 
     private lateinit var rect: Mesh
@@ -41,6 +42,14 @@ class MonakaRenderer(val core: MonakaCore): GLSurfaceView.Renderer {
                 vec3 c = a.rgb * a.w + b.rgb * b.w * (1. - a.w);
                 return vec4(c/o, o);
             }
+            float e0(float t, float k) {
+                if(t < 0.) return 0.;
+                if(t > 1.) return 1.;
+                float x = exp(-t * k);
+                float s0 = 1.;
+                float s1 = exp(-k);
+                return (x-s0) / (s1-s0);
+            }
             void main() {
                 float w = resolution.x;
                 float h = resolution.y;
@@ -50,7 +59,7 @@ class MonakaRenderer(val core: MonakaCore): GLSurfaceView.Renderer {
                 vec3 borderColor = vec3(1);
                 frontColor = mix(frontColor, vec3(1.) * dot(frontColor, vec3(1./3.)), 0.5);
                 
-                float radOffset = h * 0.05;
+                float radOffset = h * mix(1., 0.05, e0(time*2., 8.));
                 float slant = length(vec2(w/2., radOffset));
                 float fullR = slant/2. * (slant / radOffset);
                 float radius = fullR;
@@ -69,9 +78,9 @@ class MonakaRenderer(val core: MonakaCore): GLSurfaceView.Renderer {
             """.trimIndent() , arrayOf()
         )
         val quad = floatArrayOf(-1f, 0f, 0f, 1f, 0f, -1f, 0f, -1f, 0f, 1f, 1f, 0f)
-        val points = floatArrayOf(0f, 0f, 0.2f, -1f, 0f, 0.3f, -1f, -0.5f, 0.1f)
+        val points = core.layout.buttons
         val qCount = points.size / 3
-        var qVerts: FloatArray = FloatArray((2 + 3) * 6 * qCount)
+        var qVerts = FloatArray((2 + 3) * 6 * qCount)
         var k = 0
         for(i in 0 until qCount) {
             for(j in 0 until 6) {
@@ -91,15 +100,28 @@ class MonakaRenderer(val core: MonakaCore): GLSurfaceView.Renderer {
             varying vec2 coord; 
             varying vec3 local;
             uniform vec2 p;
+            float e0(float t, float k) {
+                if(t < 0.) return 0.;
+                if(t > 1.) return 1.;
+                float x = exp(-t * k);
+                float s0 = 1.;
+                float s1 = exp(-k);
+                return (x-s0) / (s1-s0);
+            }
             void main() { 
-                float h = resolution.y;
-                float size = h * uv.z;
-                float realSize = size + h * 0.01; // shadow
-                coord = vertex * realSize + uv.xy * h + resolution.xy;
-                if(length(uv.xy) < 0.01) coord += p - resolution.xy;
+                float size = uv.z * e0(time*2., 4.);
+                float realSize = size + 0.01; // shadow
+                coord = uv.xy;
+                if(length(uv.xy) < 0.01) coord = p;
+                coord += vertex * realSize;
                 local = vec3(vertex.x + vertex.y, vertex.x - vertex.y, 0) * realSize;
                 local.z = size;
-                gl_Position = vec4((coord / resolution * 2. - 1.) * vec2(1,-1), 0.0, 1.0); 
+                
+                coord *= resolution.y;
+                coord += resolution;
+                coord.y *= native.x;
+                local *= resolution.y;
+                gl_Position = vec4((coord / resolution * 2. - 1.) * vec2(1,-1) + vec2(0, native.y), 0.0, 1.0);
             }
             """.trimIndent(),
             """
@@ -131,7 +153,7 @@ class MonakaRenderer(val core: MonakaCore): GLSurfaceView.Renderer {
                 vec4 c = vec4(shadowColor, 0.5);
                 if(d > - corner/2.) c.a = exp(-max(d, 0.) * 0.3) * 0.2;
                 
-                vec2 shadowOffset = vec2(1, -1.) * h * 0.005;
+                vec2 shadowOffset = vec2(1, -1) * h * 0.005;
                 q = abs(local.xy + shadowOffset) - (local.z - corner);
                 d = length(max(q,0.)) + min(max(q.x, q.y), 0.) - corner;
                 if(d < - corner / 2.) {
@@ -147,21 +169,21 @@ class MonakaRenderer(val core: MonakaCore): GLSurfaceView.Renderer {
     }
 
     public override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-        core.resized(width, height)
-    }
+        if(primary) core.resized(width, height)
+        else core.subResized(height)
 
-    public override fun onDrawFrame(gl: GL10?) {
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+        GLES20.glViewport(0, 0, width, height)
         GLES20.glDisable(GLES20.GL_CULL_FACE)
         GLES20.glEnable(GLES20.GL_BLEND)
         GLES20.glBlendFuncSeparate(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA, GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
-        core.frame()
-        background?.draw(rect)
-        buttons?.draw(quads)
     }
 
-    fun setPoint(p: PointF) {
-        buttons?.f2("p", p.x, p.y)
+    public override fun onDrawFrame(gl: GL10?) {
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+
+        if(primary) background?.draw(rect, primary)
+        buttons?.f2("p", core.layout.p.x, core.layout.p.y)
+        buttons?.draw(quads, primary)
     }
 }

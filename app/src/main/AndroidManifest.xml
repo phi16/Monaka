@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Monaka"
         tools:targetApi="31" >
         <service
-            android:name="MonakaService"
+            android:name=".front.MonakaService"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_INPUT_METHOD"
             android:exported="true">
