@@ -21,7 +21,7 @@ class MonakaCore {
     var width: Int = 0
     var height: Int = 0
     var subHeight: Int = 0
-    var layout: MonakaLayout = MonakaLayout()
+    var layout: MonakaLayout = MonakaLayout(this)
     lateinit var service: MonakaService
     lateinit var mainView: MonakaView
     lateinit var subView: MonakaView
@@ -34,7 +34,7 @@ class MonakaCore {
     private var frameTimer: Runnable? = null
     private var subTimer: Runnable? = null
     private var mainStroke: MonakaStroke? = null
-    private val isEmulator: Boolean = true
+    private val isEmulator: Boolean = false
 
     fun init(service: MonakaService) {
         Log.d("Monaka","Init")
@@ -65,7 +65,10 @@ class MonakaCore {
     fun frame() {
         val now = LocalDateTime.now()
         val diff = presentTime.until(now, ChronoUnit.MILLIS)
-        time = diff / 1000.0f;
+        val t = diff / 1000.0f
+        val dt = t - time
+        time = t
+        layout.frame(dt)
     }
 
     fun applyInputType(inputType: Int) {
@@ -166,5 +169,9 @@ class MonakaCore {
 
     fun commit(s: String) {
        ic?.commitText(s, 1)
+    }
+
+    fun panic(e: String) {
+        Log.e("Monaka", "Impossible happened! $e")
     }
 }
