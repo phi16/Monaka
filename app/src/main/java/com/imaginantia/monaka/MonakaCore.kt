@@ -34,7 +34,7 @@ class MonakaCore {
     private var frameTimer: Runnable? = null
     private var subTimer: Runnable? = null
     private var mainStroke: MonakaStroke? = null
-    private val isEmulator: Boolean = false
+    private val isEmulator: Boolean = true
 
     fun init(service: MonakaService) {
         Log.d("Monaka","Init")
@@ -68,6 +68,7 @@ class MonakaCore {
         val t = diff / 1000.0f
         val dt = t - time
         time = t
+        for(s in strokes.values) s.frame(dt)
         layout.frame(dt)
     }
 

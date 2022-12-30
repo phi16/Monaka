@@ -4,6 +4,7 @@ import android.graphics.PointF
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.util.Log
+import androidx.core.graphics.minus
 import com.imaginantia.monaka.MonakaCore
 import com.imaginantia.monaka.MonakaLayout
 import com.imaginantia.monaka.draw.Draw
@@ -223,7 +224,6 @@ class MonakaRenderer(private val core: MonakaCore, private val primary: Boolean)
             attribute vec2 vertex; 
             varying vec2 local;
             uniform vec2 center;
-            uniform vec2 extend;
             uniform float radius;
             uniform float shadow;
             void main() { 
@@ -232,13 +232,7 @@ class MonakaRenderer(private val core: MonakaCore, private val primary: Boolean)
                 vec2 coord = vertex * realSize;
                 local = coord;
                 local *= resolution.y;
-                vec2 e = extend * 4.0;
-                coord = mat2(
-                    1. + e.x * e.x, 
-                    e.y * e.x, 
-                    e.x * e.y, 
-                    1. + e.y * e.y) * coord;
-                coord += center - extend / 2.;
+                coord += center;
                 gl_Position = coordToScreen(coord);
             }
             """.trimIndent(),
@@ -266,7 +260,7 @@ class MonakaRenderer(private val core: MonakaCore, private val primary: Boolean)
                 
                 gl_FragColor = c;
             }
-            """.trimIndent(), arrayOf("center", "extend", "radius", "width", "shadow"))
+            """.trimIndent(), arrayOf("center", "radius", "width", "shadow"))
     }
 
     fun e0(t: Float, k: Float): Float {
@@ -322,14 +316,24 @@ class MonakaRenderer(private val core: MonakaCore, private val primary: Boolean)
             radial?.draw(rods)
 
             annulus?.f2("center", core.layout.center.x, core.layout.center.y)
-            annulus?.f2("extend", 0f, 0f)
             annulus?.f1("radius", 0.1f * e0(core.layout.openTime * 2.0f, 12.0f) + 0.01f)
             annulus?.f1("width", 0.03f)
             annulus?.f1("shadow", 0.02f)
             annulus?.draw(rect)
 
+            annulus?.f2("center", core.layout.center.x, core.layout.center.y)
+            annulus?.f1("radius", core.layout.maxVelocity + 0.01f)
+            annulus?.f1("width", 0.02f)
+            annulus?.f1("shadow", 0.01f)
+            annulus?.draw(rect)
+
+            annulus?.f2("center", core.layout.center.x, core.layout.center.y)
+            annulus?.f1("radius", core.layout.velocity + 0.01f)
+            annulus?.f1("width", 0.02f)
+            annulus?.f1("shadow", 0.01f)
+            annulus?.draw(rect)
+
             annulus?.f2("center", core.layout.point.x, core.layout.point.y)
-            annulus?.f2("extend", core.layout.point.x - core.layout.prevPoint.x, core.layout.point.y - core.layout.prevPoint.y)
             annulus?.f1("radius", 0.02f)
             annulus?.f1("width", 0.02f)
             annulus?.f1("shadow", 0.02f)
